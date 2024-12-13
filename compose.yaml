@@ -1,0 +1,56 @@
+name: test-model
+
+services:
+  # Source Code ####################################
+  frontend:
+    environment:
+      VITE_API_URL: http://apigateway:8080/
+    build:
+      context: ./frontend
+      target: final
+    ports:
+      - 4561:80
+    networks:
+      - app-network
+
+  apigateway:
+    build:
+      context: ./apigateway
+      target: final
+    environment:
+      SERVICE_URL: http://service:8080/
+    ports:
+      - 4562:8080
+    networks:
+      - app-network
+    depends_on:
+      - service
+
+  service:
+    build:
+      context: ./service
+      target: final
+    ports:
+      - 4563:8080
+    extra_hosts:
+      - "localhost:192.168.1.112"
+    networks:
+      - app-network
+  # Redis ##########################################
+
+  # Kafka ##########################################
+
+  # Logstash  ##########################################
+
+  # Elasticsearch  ##########################################
+
+  # Kibana  ##########################################
+
+  # Prometheus ##########################################
+
+  # Grafana ##########################################  
+
+
+networks:
+  app-network:
+    driver: bridge # Default network driver

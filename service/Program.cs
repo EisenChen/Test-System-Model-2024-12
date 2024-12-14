@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using service;
 using Service.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,8 +13,11 @@ builder.Services.AddDbContext<CounterContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-builder.Services.AddControllers();
+var REDIS_URL = Environment.GetEnvironmentVariable("REDIS_URL");
 
+builder.Services.AddSingleton<CacheContext>(options => new CacheContext(REDIS_URL != null ? REDIS_URL : "localhost:4564"));
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 

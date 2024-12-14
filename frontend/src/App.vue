@@ -3,6 +3,7 @@
   import { RouterLink, RouterView } from 'vue-router'
   import HelloWorld from './components/HelloWorld.vue'
   const counter = ref(0);
+  const counterCache = ref(0);
   const number = ref(1);
   // const server = "https://localhost:4560";
   const server = import.meta.env.VITE_API_URL;
@@ -34,6 +35,15 @@
       console.log(err)
     }
   }
+  async function GetCacheValue() {
+    try {
+      const res = await fetch(`${server}/counter/cache`);
+      const data = await res.json();
+      counterCache.value = Number(data.value);
+    } catch (err) {
+      console.log(err)
+    }
+  }
 </script>
 
 <template>
@@ -50,10 +60,14 @@
     </div>
     <div>
       <div>Server is:{{ server }}</div>
-      <button @click="GetValue">Get Value</button>
-      <button @click="Add">Add Value</button>
+      <div style="display: flex; flex-direction: column;">
+        <button @click="GetCacheValue">Get Cache Value</button>
+        <button @click="GetValue">Get Value</button>
+        <button @click="Add">Add Value</button>
+      </div>
       <input v-model="number" type="number" />
       <div>Value is : <span :v-model="counter">{{ counter }}</span></div>
+      <div>Cache Value is:<span :v-model="counterCache">{{ counterCache }}</span></div>
     </div>
   </header>
 

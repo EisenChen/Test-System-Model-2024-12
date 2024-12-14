@@ -3,8 +3,7 @@ name: test-model
 services:
   # Source Code ####################################
   frontend:
-    environment:
-      VITE_API_URL: http://apigateway:8080/
+    container_name: frontend
     build:
       context: ./frontend
       target: final
@@ -14,6 +13,7 @@ services:
       - app-network
 
   apigateway:
+    container_name: apigateway
     build:
       context: ./apigateway
       target: final
@@ -27,17 +27,31 @@ services:
       - service
 
   service:
+    container_name: service
     build:
       context: ./service
       target: final
+    environment:
+      REDIS_URL: redis:6379
     ports:
       - 4563:8080
     extra_hosts:
       - "localhost:192.168.1.112"
     networks:
       - app-network
-  # Redis ##########################################
+    depends_on:
+      - redis
 
+  # Redis ##########################################
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "4564:6379"
+    command: [ "redis-server", "--appendonly", "yes" ]
+    restart: always
+    networks:
+      - app-network
   # Kafka ##########################################
 
   # Logstash  ##########################################

@@ -1,8 +1,7 @@
 namespace Service.Controller;
 using Microsoft.AspNetCore.Mvc;
-using service;
 using Service.Model;
-using Service.Repository;
+using Service.Repositories;
 
 [ApiController]
 [Route("counter")]
@@ -36,19 +35,19 @@ public class ConunterController(CounterContext context, CacheContext cache) : Co
         return Ok(res);
     }
 
-    [HttpGet("cache")]
-    public ActionResult<int> GetCounterCache()
-    {
-        int res = (int)_cache.GetKey("counter");
-        return Ok(new Counter { Value = res });
-    }
-
     public void SetCounterCache(int value)
     {
         if (value % 2 == 0)
         {
-            _cache.Set("counter", value);
+            _cache.SetKeyValue("counter", value);
         }
+    }
+
+    [HttpGet("cache")]
+    public ActionResult<int> GetCounterCache()
+    {
+        int res = (int)_cache.GetValueByKey("counter");
+        return Ok(new Counter { Value = res });
     }
 }
 

@@ -1,4 +1,4 @@
-namespace Service.Repository;
+namespace Service.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Service.Model;
 
@@ -10,7 +10,6 @@ public class CounterContext(DbContextOptions<CounterContext> options) : DbContex
     {
         base.OnModelCreating(modelBuilder);
 
-        // 添加种子数据
         modelBuilder.Entity<Counter>().HasData(
             new Counter { Id = 1, Value = 0 }
         );

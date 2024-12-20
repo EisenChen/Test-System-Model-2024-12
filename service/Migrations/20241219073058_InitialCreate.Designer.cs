@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Service.Repository;
+using Service.Repositories;
 
 #nullable disable
 
 namespace service.Migrations
 {
     [DbContext(typeof(CounterContext))]
-    [Migration("20241212084652_InitialCreate")]
+    [Migration("20241219073058_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

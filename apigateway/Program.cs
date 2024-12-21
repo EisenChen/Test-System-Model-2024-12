@@ -1,4 +1,5 @@
 using apigateway;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,12 @@ builder.Services.AddReverseProxy().LoadFromMemory(proxyConfigProvider.GetRoutes(
 builder.AddKafkaProducer<string, string>(KAFKA_URL);
 
 var app = builder.Build();
+
+// =============================
+//     Promethus
+// =============================
+app.UseHttpMetrics();
+app.MapMetrics();
 
 app.UseCors();
 app.MapReverseProxy();

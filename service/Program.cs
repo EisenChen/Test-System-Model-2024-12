@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using Microsoft.EntityFrameworkCore;
+using Prometheus;
 using Service.Repositories;
 
 
@@ -12,6 +13,11 @@ var KAFKA_URL = Environment.GetEnvironmentVariable("KAFKA_URL") ?? "localhost:90
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// =============================
+//     Controller
+// =============================
+builder.Services.AddControllers();
 
 // =============================
 //     SQL Server
@@ -36,10 +42,7 @@ builder.Services.AddSingleton<IConsumer<string, string>>(new ConsumerBuilder<str
 builder.Services.AddSingleton<KafkaBackGroundService>();
 builder.Services.AddHostedService<KafkaBackGroundService>();
 
-// =============================
-//     Controller
-// =============================
-builder.Services.AddControllers();
+
 
 var app = builder.Build();
 
@@ -49,6 +52,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// =============================
+//     Promethus
+// =============================
+app.UseHttpMetrics();
+app.MapMetrics();
+
 
 app.UseHttpsRedirection();
 app.MapControllers();

@@ -12,15 +12,15 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf # Nginx 配置文件
     ports:
-      - 4561:80
+      - 20001:80
     networks:
       - app-network
 
-  nginx-prometheus-exporter:
+  nginx-exporter:
     image: nginx/nginx-prometheus-exporter:latest
-    container_name: nginx-prometheus-exporter
+    container_name: nginx-exporter
     ports:
-      - "9113:9113"
+      - "22001:9113"
     environment:
       - NGINX_HOST=nginx
       - NGINX_PORT=4561
@@ -38,7 +38,7 @@ services:
       SERVICE_URL: http://service:8080/
       KAFKA_URL: kafka:9092
     ports:
-      - 4562:8080
+      - 20002:8080
     networks:
       - app-network
     depends_on:
@@ -54,7 +54,7 @@ services:
       REDIS_URL: redis:6379
       KAFKA_URL: kafka:9092
     ports:
-      - 4563:8080
+      - 20003:8080
     extra_hosts:
       - "localhost:192.168.1.112"
     networks:
@@ -70,7 +70,7 @@ services:
     image: redis:latest
     container_name: redis
     ports:
-      - "4564:6379"
+      - "21001:6379"
     command: [ "redis-server", "--appendonly", "yes" ]
     restart: always
     networks:
@@ -80,7 +80,7 @@ services:
     image: oliver006/redis_exporter
     container_name: redis-exporter
     ports:
-      - "9121:9121"
+      - "22002:9121"
     environment:
       REDIS_ADDR: redis:6379
     depends_on:
@@ -109,22 +109,24 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
-      - "9092:9092"
+      - "21002:9092"
     networks:
       - app-network
 
   kafka-exporter:
-    image: danielqsj/kafka-exporter
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter
+    command: 
+      - "--kafka.server=kafka:9092"
+    ports:
+      - "22003:9308"
+    restart: always     
     depends_on:
       - kafka
-    environment:
-      KAFKA_BROKERS: "kafka:9092"
-    ports:
-      - "9308:9308"
     networks:
       - app-network
 
@@ -136,32 +138,122 @@ services:
     container_name: prometheus
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      - "23001:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - app-network
-  # ====================
-  # Grafana
-  # ====================
-
-  # ====================
-  # Logstash
-  # ====================
 
   # ====================
   # Elasticsearch
   # ====================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # 調整內存配置
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "23002:9200" # Elasticsearch API
+    volumes:
+      - ./elastic/data:/usr/share/elasticsearch/data
+    networks:
+      - app-network
+
+  elasticsearch-exporter:
+    image: quay.io/prometheuscommunity/elasticsearch-exporter:latest
+    container_name: elasticsearch-exporter
+    command:
+     - '--es.uri=http://elasticsearch:9200'    
+    restart: always
+    ports:
+      - "22004:9114" # Exporter 默認端口
+    depends_on:
+      - elasticsearch
+    networks:
+      - app-network
+
+  # ====================
+  # Logstash
+  # ====================
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.10.2
+    container_name: logstash
+    ports:
+      - "23003:5044" # Logstash Beats input
+      - "23004:9600" # Logstash monitoring API
+    environment:
+      - "http.host=0.0.0.0"
+      - "http.port=9600"
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf # Logstash 配置文件
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+    depends_on:
+      - elasticsearch
+    networks:
+      - app-network
+
+  logstash-exporter:
+    image: kuskoman/logstash-exporter:v1.8.3
+    container_name: logstash-exporter
+    environment:      
+      - LOGSTASH_URL=${LOGSTASH_URL:-http://logstash:9600}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}      
+    volumes:
+      - ./logstash/logstash-exporter.yml:/app/config.yml
+    ports:
+      - "22005:9198"
+    depends_on:
+      - logstash
+    networks:
+      - app-network
 
   # ====================
   # Kibana
   # ====================
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.10.2
+    container_name: kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    command: >
+      bash -c "
+      bin/kibana-plugin install https://github.com/pjhampton/kibana-prometheus-exporter/releases/download/8.10.2/kibanaPrometheusExporter-8.10.2.zip &&
+      bin/kibana"
+    ports:
+      - "23005:5601" # Kibana Web UI
+    depends_on:
+      - elasticsearch
+    networks:
+      - app-network
 
+  # ====================
+  # Grafana
+  # ====================
 
-
-
-
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin # 設置 Grafana 的管理員密碼
+    ports:
+      - "23006:3000"  # 映射 3000 端口，Grafana 默認的 Web UI 端口
+    volumes:
+      - ./grafana/data:/var/lib/grafana  # 保留 Grafana 的數據
+    networks:
+      - app-network
 
 networks:
   app-network:
     driver: bridge # Default network driver
+
+  
+
+  
+

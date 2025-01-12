@@ -73,7 +73,29 @@ Build a system model by using following tools.
 
 ### Connect Work Flow System
 
-### Test Wrok Flow System
+- EXPOSE PORTS
+  - Service: 200{00-99}
+    - Vue Frontend: 20001
+    - .NET API Gateway: 2002
+    - .NET Service: 20003    
+  - Storage: 210{00-99}
+    - Redis: 21001
+    - Kafka: 21002
+  - Exporter: 220{00-99}
+    - Nginx of frontend exporter: 22001
+    - Redis exporter: 22002
+    - Kafka exporter: 22003
+    - Elasticsearch exporter: 22004
+    - Logstash exoirter: 22005
+  - Monitor: 230{00-99}
+    - Prometheus: 23001
+    - Elasticsearch: 23002
+    - Logstash Beats: 23003
+    - Logstash Monitor API: 23004
+    - Kibana: 23005
+    - grafana: 23006
+
+### Test Work Flow System
 
 ## Step3 Develop App
 

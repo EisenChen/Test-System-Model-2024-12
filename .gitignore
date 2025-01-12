@@ -407,3 +407,6 @@ npm-debug.log
 yarn-error.log
 
 # End of https://www.toptal.com/developers/gitignore/api/vuejs,csharp
+
+elastic/data/*
+grafana/data/*

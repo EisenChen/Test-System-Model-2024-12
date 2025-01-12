@@ -20,19 +20,15 @@ Build a system model by using following tools.
 ## Step1 Categorize tools
 
 - Frontend
-
   - Framework
     - Vue.js
 
 - Backend
-
   - Service
     - ASP.NET Core
   - Store
-    - Redis
-      Cache
-    - SQL Server
-      Data Store
+    - Redis: Cache
+    - SQL Server: Data Store
   - Message Broker
     - Kafka
 
@@ -64,6 +60,8 @@ Build a system model by using following tools.
 ## Step2 Build Work Flow
 
 ### System Architecture Diagram
+
+![System Architecture](./doc/image/System%20Architecture.png)
 
 ### Build Infrastructure
 

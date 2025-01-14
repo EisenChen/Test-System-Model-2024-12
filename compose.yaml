@@ -32,7 +32,7 @@ services:
   apigateway:
     container_name: apigateway
     build:
-      context: ./apigateway
+      context: ./apigateway/src
       target: final
     environment:
       SERVICE_URL: http://service:8080/
@@ -48,7 +48,7 @@ services:
   service:
     container_name: service
     build:
-      context: ./service
+      context: ./service/src
       target: final
     environment:
       REDIS_URL: redis:6379

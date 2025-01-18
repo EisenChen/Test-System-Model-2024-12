@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: kibana
+  labels:
+    app: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      namespace: app
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:8.10.2
+        ports:
+        - containerPort: 5601
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elasticsearch.app.svc.cluster.local:23002"
+        # command: [
+        #   bash,
+        #   -c,            
+        #   bin/kibana-plugin install https://github.com/pjhampton/kibana-prometheus-exporter/releases/download/8.10.2/kibanaPrometheusExporter-8.10.2.zip && bin/kibana]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: kibana
+  labels:
+    app: kibana
+spec:
+  selector:
+    app: kibana
+  ports:
+    - protocol: TCP
+      port: 23005     
+      targetPort: 5601
+  type: LoadBalancer    

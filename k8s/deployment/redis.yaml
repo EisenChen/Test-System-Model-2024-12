@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: redis  
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:latest
+        ports:
+        - containerPort: 6379
+        command: [ "redis-server", "--appendonly", "yes" ]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: redis
+  labels:
+    app: redis  
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 21001
+      targetPort: 6379
+  type: LoadBalancer
+
+---
+# ====================
+# Exporter
+# ====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: redis-exporter  
+  labels:
+    app: redis-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-exporter
+  template:
+    metadata:
+      labels:
+        app: redis-exporter
+    spec:
+      containers:
+      - name: redis-exporter
+        image: oliver006/redis_exporter
+        env:
+        - name: REDIS_ADDR
+          value: "redis.app.svc.cluster.local:21001"
+        ports:
+        - containerPort: 9121
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: redis-exporter
+  labels:
+    app: redis-exporter  
+spec:
+  selector:
+    app: redis-exporter
+  ports:
+    - protocol: TCP
+      port: 22002
+      targetPort: 9121
+  type: LoadBalancer

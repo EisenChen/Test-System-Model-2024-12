@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: logstash
+  labels:
+    app: logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      namespace: app
+      labels:
+        app: logstash
+    spec:
+      containers:
+      - name: logstash
+        image: docker.elastic.co/logstash/logstash:8.10.2
+        ports:
+        - containerPort: 5044
+        - containerPort: 9600
+        env:
+        - name: http.host
+          value: "0.0.0.0"
+        - name: http.port
+          value: "9600"        
+        volumeMounts:
+            - name: config-volume
+              mountPath: "/usr/share/logstash/pipeline/logstash.conf"
+            - name: config-volume2
+              mountPath: "/usr/share/logstash/config/logstash.yml"              
+      volumes:
+        - name: config-volume
+          hostPath:
+            path: "/mnt/logstash/logstash.conf"
+            type: File
+        - name: config-volume2
+          hostPath:
+            path: "/mnt/logstash/logstash.yml"
+            type: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: logstash
+  labels:
+    app: logstash
+spec:
+  selector:
+    app: logstash
+  ports:
+    - name: beats-port
+      protocol: TCP
+      port: 23003     
+      targetPort: 5044
+    - name: monitoring-api
+      protocol: TCP
+      port: 23004     
+      targetPort: 9600    
+  type: LoadBalancer  
+
+---
+# ====================
+# logstash-exporter
+# ====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: logstash-exporter
+  labels:
+    app: logstash-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash-exporter
+  template:
+    metadata:
+      namespace: app
+      labels:
+        app: logstash-exporter
+    spec:
+      containers:
+      - name: logstash-exporter
+        image: kuskoman/logstash-exporter:v1.8.3
+        ports:
+        - containerPort: 9198
+        env:
+        - name: LOGSTASH_URL
+          value: "http://logstash.app.svc.cluster.local:23004"
+        - name: LOG_LEVEL
+          value: "debug"
+        volumeMounts:
+            - mountPath: "/app/config.yml"
+              name: config-volume
+      volumes:
+        - name: config-volume
+          hostPath:
+            path: "/mnt/logstash/logstash-exporter.yml"
+            type: File
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: logstash-exporter
+  labels:
+    app: logstash-exporter
+spec:
+  selector:
+    app: logstash-exporter
+  ports:
+    - protocol: TCP
+      port: 22005     
+      targetPort: 9198
+  type: LoadBalancer  
+
+  

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      namespace: app
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: localhost:5000/app/frontend:latest
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 20001       
+      targetPort: 80  
+  type: LoadBalancer    
+---
+# ====================
+# Frontend exporter
+# ====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: frontend-exporter
+  labels:
+    app: frontend-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-exporter
+  template:
+    metadata:
+      namespace: app
+      labels:
+        app: frontend-exporter
+    spec:
+      containers:
+      - name: frontend-exporter
+        image: nginx/nginx-prometheus-exporter:latest
+        ports:
+        - containerPort: 9113
+        env:
+        - name: NGINX_HOST
+          value: "frontend.app.svc.cluster.local"
+        - name: NGINX_PORT
+          value: "20001"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: frontend-exporter
+  labels:
+    app: frontend-exporter
+spec:
+  selector:
+    app: frontend-exporter
+  ports:
+    - protocol: TCP
+      port: 22001       
+      targetPort: 9113  
+  type: LoadBalancer    

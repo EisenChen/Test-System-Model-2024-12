@@ -4,27 +4,27 @@ global:
 scrape_configs:
   - job_name: "frontend"
     static_configs:
-      - targets: ["nginx-exporter:9113"]
+      - targets: ["frontend-exporter.app.svc.cluster.local:22001"]
 
   - job_name: "apigateway"
     static_configs:
-      - targets: ["apigateway:8080"]
+      - targets: ["apigateway.app.svc.cluster.local:20002"]
 
   - job_name: "service"
     static_configs:
-      - targets: ["service:8080"]
+      - targets: ["service.app.svc.cluster.local:20003"]
 
   - job_name: "redis"
     static_configs:
-      - targets: ["redis-exporter:9121"]
+      - targets: ["redis-exporter.app.svc.cluster.local:22002"]
 
   - job_name: "zookeeper"
     static_configs:
-      - targets: ["zookeeper-exporter:9141"]
+      - targets: ["zookeeper-exporter.app.svc.cluster.local:22006"]
 
   - job_name: "kafka"
     static_configs:
-      - targets: ["kafka-exporter:9308"]
+      - targets: ["kafka-exporter.app.svc.cluster.local:22003"]
 
   - job_name: "prometheus"
     static_configs:
@@ -32,17 +32,13 @@ scrape_configs:
 
   - job_name: "elasticsearch"
     static_configs:
-      - targets: ["elasticsearch-exporter:9114"]
+      - targets: ["elasticsearch-exporter.app.svc.cluster.local:22004"]
 
   - job_name: "logstash"
     static_configs:
-      - targets: ["logstash-exporter:9198"]        
+      - targets: ["logstash-exporter.app.svc.cluster.local:22005"]        
 
   - job_name: "kibana"
-    scrape_interval: '10s'
     static_configs:
-      - targets: ["kibana:5601"]
+      - targets: ["kibana.app.svc.cluster.local:23005"]
     metrics_path: "/_prometheus/metrics"
-    basic_auth:
-      username: 'elastic'
-      password: 'changeme'

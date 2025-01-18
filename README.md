@@ -17,6 +17,54 @@ Build a system model by using following tools.
 13. Grafana
 14. Prometheus
 
+## Overview
+
+### Usage
+
+#### Docker
+```
+docker compose up --build -d
+```
+#### Kubernates
+- Set Minikube Environment
+  - Install Minikube - [Guide](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download)
+  - Mount Config Volume - [Guide](https://minikube.sigs.k8s.io/docs/handbook/mount/)
+  - Enable Docker Registry - [Guide](https://minikube.sigs.k8s.io/docs/handbook/registry/)
+  - Accessing Apps - [Guide](https://minikube.sigs.k8s.io/docs/handbook/accessing/)
+  - Minikube Dashboard - [Guide](https://minikube.sigs.k8s.io/docs/handbook/dashboard/)
+
+- Step
+  - Start Minikube
+```
+minikube start
+```
+
+  - Mount Config Volume
+  <span><repo_path></span> is the root of the repo.
+```
+minikube mount <repo_path>:/mnt
+```
+
+  - Enable Docker Registry
+```
+minikube addons enable registry
+kubectl port-forward --namespace kube-system service/registry 5000:80
+docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
+```
+
+  - Start App
+```
+kubectl apply -f ./k8s/deployment
+```
+  - Open Service Port to localhost
+```
+minikube tunnel
+```
+  - Open Minikube Dashboard
+```
+minikube dashboard
+```
+
 ## Step1 Categorize tools
 
 - Frontend
@@ -74,7 +122,7 @@ Build a system model by using following tools.
 - EXPOSE PORTS
   - Service: 200{00-99}
     - Vue Frontend: 20001
-    - .NET API Gateway: 2002
+    - .NET API Gateway: 20002
     - .NET Service: 20003    
   - Storage: 210{00-99}
     - Redis: 21001
@@ -84,7 +132,8 @@ Build a system model by using following tools.
     - Redis exporter: 22002
     - Kafka exporter: 22003
     - Elasticsearch exporter: 22004
-    - Logstash exoirter: 22005
+    - Logstash exorter: 22005
+    - zookeeper exporter: 22006
   - Monitor: 230{00-99}
     - Prometheus: 23001
     - Elasticsearch: 23002
@@ -92,6 +141,7 @@ Build a system model by using following tools.
     - Logstash Monitor API: 23004
     - Kibana: 23005
     - grafana: 23006
+    - zookeeper: 23007
 
 ### Test Work Flow System
 

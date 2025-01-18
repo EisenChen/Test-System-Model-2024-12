@@ -9,8 +9,7 @@ services:
     build:
       context: ./frontend
       target: final
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf # Nginx 配置文件
+    image: app/frontend:latest    
     ports:
       - 20001:80
     networks:
@@ -34,6 +33,7 @@ services:
     build:
       context: ./apigateway/src
       target: final
+    image: app/apigateway:latest
     environment:
       SERVICE_URL: http://service:8080/
       KAFKA_URL: kafka:9092
@@ -50,6 +50,7 @@ services:
     build:
       context: ./service/src
       target: final
+    image: app/service:latest
     environment:
       REDIS_URL: redis:6379
       KAFKA_URL: kafka:9092
@@ -98,6 +99,20 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_JMX_PORT: 1099
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"    
+    ports:
+      - "23007:2181"
+    networks:
+      - app-network
+
+  zookeeper-exporter:
+    image: dabealu/zookeeper-exporter:latest
+    container_name: zookeeper-exporter
+    ports:
+      - "22006:9141"
+    command: --zk-hosts="zookeeper:2181"
+    depends_on:
+      - zookeeper
     networks:
       - app-network
 
@@ -222,10 +237,7 @@ services:
     container_name: kibana
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    command: >
-      bash -c "
-      bin/kibana-plugin install https://github.com/pjhampton/kibana-prometheus-exporter/releases/download/8.10.2/kibanaPrometheusExporter-8.10.2.zip &&
-      bin/kibana"
+    command: bash -c "if [ ! -d /usr/share/kibana/plugins/kibanaPrometheusExporter ]; then bin/kibana-plugin install https://github.com/pjhampton/kibana-prometheus-exporter/releases/download/8.10.2/kibanaPrometheusExporter-8.10.2.zip && bin/kibana;else bin/kibana; fi"
     ports:
       - "23005:5601" # Kibana Web UI
     depends_on:

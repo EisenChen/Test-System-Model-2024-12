@@ -16,26 +16,22 @@ FROM node:${NODE_VERSION}-alpine AS build
 # Set working directory for all build stages.
 WORKDIR /app
 
-# 複製 package.json 和 pnpm-lock.yaml 以便安裝依賴
+# install package first, then "COPY . ." won't reinstall again.
 COPY package.json pnpm-lock.yaml ./
 
-# 安裝所有依賴
 RUN npm install -g pnpm && pnpm install
 
-# 複製 Vue.js 專案的所有檔案到容器
 COPY . .
 
-# 構建應用程式
+ARG API_URL
+ENV VITE_API_URL=${API_URL}
+
 RUN pnpm run build
 
-# 使用 Nginx 作為運行階段，來提供靜態文件
 FROM nginx:alpine AS final
 
-# 複製構建好的文件到 Nginx 服務器的公開目錄
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# 暴露 Nginx 的端口 80
 EXPOSE 80
 
-# 啟動 Nginx
 CMD ["nginx", "-g", "daemon off;"]

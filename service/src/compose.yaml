@@ -14,8 +14,6 @@ services:
       target: final
     ports:
       - 4566:8080
-    extra_hosts:
-      - "localhost:192.168.1.112"
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to

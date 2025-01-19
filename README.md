@@ -127,6 +127,7 @@ minikube dashboard
   - Storage: 210{00-99}
     - Redis: 21001
     - Kafka: 21002
+    - SQL Server: 21003
   - Exporter: 220{00-99}
     - Nginx of frontend exporter: 22001
     - Redis exporter: 22002

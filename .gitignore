@@ -410,3 +410,4 @@ yarn-error.log
 
 elastic/data/*
 grafana/data/*
+sqlserver/sql_data

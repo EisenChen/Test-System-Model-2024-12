@@ -3,7 +3,6 @@ namespace Service.Controller;
 using Microsoft.AspNetCore.Mvc;
 using Service.Repositories;
 using Service.Model;
-using System.Text.Json;
 
 [ApiController]
 [Route("kafka")]

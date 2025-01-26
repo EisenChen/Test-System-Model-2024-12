@@ -21,6 +21,15 @@ spec:
         image: localhost:5000/app/frontend:latest
         ports:
         - containerPort: 80
+        - containerPort: 8080
+        volumeMounts:
+          - mountPath: "/etc/nginx/nginx.conf"
+            name: config-volume
+      volumes:
+        - name: config-volume
+          hostPath:
+            path: "/mnt/nginx/nginx.conf"
+            type: File
 ---
 apiVersion: v1
 kind: Service
@@ -63,12 +72,9 @@ spec:
       - name: frontend-exporter
         image: nginx/nginx-prometheus-exporter:latest
         ports:
-        - containerPort: 9113
-        env:
-        - name: NGINX_HOST
-          value: "frontend.app.svc.cluster.local"
-        - name: NGINX_PORT
-          value: "20001"
+        - containerPort: 9113        
+        args:
+            - "--nginx.scrape-uri=http://frontend.app.svc.cluster.local:8080/stub_status"
 ---
 apiVersion: v1
 kind: Service

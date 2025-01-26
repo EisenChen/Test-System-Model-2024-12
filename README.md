@@ -26,6 +26,12 @@ Build a system model by using following tools.
 docker compose up --build -d
 ```
 #### Kubernates
+
+- Prerequisites 
+
+1. A Kubernetes cluster
+2. A Docker Registry
+
 - Set Minikube Environment
   - Install Minikube - [Guide](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fwindows%2Fx86-64%2Fstable%2F.exe+download)
   - Mount Config Volume - [Guide](https://minikube.sigs.k8s.io/docs/handbook/mount/)
@@ -34,33 +40,36 @@ docker compose up --build -d
   - Minikube Dashboard - [Guide](https://minikube.sigs.k8s.io/docs/handbook/dashboard/)
 
 - Step
-  - Start Minikube
+
+1. Start Minikube
 ```
 minikube start
 ```
-
-  - Mount Config Volume
+2. Mount Config Volume
   <span><repo_path></span> is the root of the repo.
 ```
 minikube mount <repo_path>:/mnt
 ```
-
-  - Enable Docker Registry
+3. Enable Docker Registry
 ```
 minikube addons enable registry
 kubectl port-forward --namespace kube-system service/registry 5000:80
 docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LISTEN:5000,reuseaddr,fork TCP:$(minikube ip):5000"
 ```
-
-  - Start App
+4. Build Image & Push To Minikube Registry
 ```
+./docker/push-images-ps1
+```
+5. Start App
+```
+kubectl apply -f ./k8s/namespace.yaml
 kubectl apply -f ./k8s/deployment
 ```
-  - Open Service Port to localhost
+6. Expose Service Port to localhost
 ```
 minikube tunnel
 ```
-  - Open Minikube Dashboard
+7. Open Minikube Dashboard
 ```
 minikube dashboard
 ```
@@ -122,7 +131,7 @@ minikube dashboard
 - EXPOSE PORTS
   - Service: 200{00-99}
     - Vue Frontend: 20001
-    - .NET API Gateway: 20002
+    - .NET API Gateway(Yarp): 20002
     - .NET Service: 20003    
   - Storage: 210{00-99}
     - Redis: 21001
@@ -135,6 +144,7 @@ minikube dashboard
     - Elasticsearch exporter: 22004
     - Logstash exorter: 22005
     - zookeeper exporter: 22006
+    - SQL Server exporter: 22007
   - Monitor: 230{00-99}
     - Prometheus: 23001
     - Elasticsearch: 23002

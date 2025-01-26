@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: sqlserver
+  labels:
+    app: sqlserver
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sqlserver
+  template:
+    metadata:
+      namespace: app
+      labels:
+        app: sqlserver
+    spec:      
+      containers:
+      - name: sqlserver
+        image: localhost:5000/mcr.microsoft.com/mssql/server:latest
+        ports:
+        - containerPort: 1433
+        env:
+          - name: ACCEPT_EULA
+            value: "Y"
+          - name: MSSQL_ENABLE_HADR
+            value: "1"
+          - name: MSSQL_AGENT_ENABLED
+            value: "1"
+          - name: MSSQL_SA_PASSWORD
+            value: "AdminPassword0000"      
+        volumeMounts:
+          - mountPath: "/init"
+            name: config-volume          
+        # command: ["/bin/bash","-c", "/opt/mssql/bin/sqlservr & /init/run.sh && tail -f /dev/null"]
+        command: ["/bin/bash","-c","/opt/mssql/bin/sqlservr & sleep 15 && /bin/bash /init/run.sh && tail -f /dev/null"]
+      volumes:
+        - name: config-volume          
+          hostPath:
+            path: "/mnt/sqlserver/init"
+            type: Directory
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: sqlserver
+  labels:
+    app: sqlserver
+spec:
+  selector:
+    app: sqlserver
+  ports:
+    - protocol: TCP
+      port: 21003       
+      targetPort: 1433  
+  type: LoadBalancer    
+---
+# ====================
+# Sqlserver exporter
+# ====================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: app
+  name: sqlserver-exporter
+  labels:
+    app: sqlserver-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sqlserver-exporter
+  template:
+    metadata:
+      namespace: app
+      labels:
+        app: sqlserver-exporter
+    spec:
+      containers:
+      - name: sqlserver-exporter
+        image: awaragi/prometheus-mssql-exporter
+        ports:
+        - containerPort: 4000
+        env:
+        - name: SERVER
+          value: "sqlserver.app.svc.cluster.local"
+        - name: PORT
+          value: "21003"
+        - name: USERNAME
+          value: "SA"
+        - name: PASSWORD
+          value: "AdminPassword0000"
+        - name: DEBUG
+          value: "app"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: app
+  name: sqlserver-exporter
+  labels:
+    app: sqlserver-exporter
+spec:
+  selector:
+    app: sqlserver-exporter
+  ports:
+    - protocol: TCP
+      port: 22007       
+      targetPort: 4000  
+  type: LoadBalancer    

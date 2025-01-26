@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 var REDIS_URL = Environment.GetEnvironmentVariable("REDIS_URL") ?? "localhost:21001";
 var KAFKA_URL = Environment.GetEnvironmentVariable("KAFKA_URL") ?? "localhost:21002";
+// var CORS_ORIGIN = Environment.GetEnvironmentVariable("CORS_ORIGIN") ??"http://localhost:5173";
 
 var SQL_SERVER = Environment.GetEnvironmentVariable("SQL_SERVER") ?? null;
 var SQL_SERVER_PORT = Environment.GetEnvironmentVariable("SQL_SERVER_PORT") ?? null;
@@ -53,14 +54,15 @@ builder.Services.AddSingleton<KafkaBackGroundService>();
 builder.Services.AddHostedService<KafkaBackGroundService>();
 
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(builder =>
-    {
-        // builder.WithOrigins("http://localhost:20001").WithMethods("POST","GET","OPTIONS").AllowAnyHeader();        
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();        
-    });
-});
+// builder.Services.AddCors(options =>
+// {
+//     options.AddDefaultPolicy(builder =>
+//     {
+//         // builder.WithOrigins("http://localhost:20001").WithMethods("POST","GET","OPTIONS").AllowAnyHeader();                
+//         // builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();        
+//         builder.WithOrigins(CORS_ORIGIN).AllowAnyMethod().AllowAnyHeader();
+//     });
+// });
 
 
 var app = builder.Build();

@@ -21,8 +21,12 @@ spec:
         ports:
         - containerPort: 8080
         env:
-        - name: VITE_API_URL
-          value: "http://apigateway.app.svc.cluster.local:20002"      
+        - name: SERVICE_URL
+          value: "http://service.app.svc.cluster.local:20003"        
+        - name: KAFKA_URL
+          value: "http://kafka-svc.app.svc.cluster.local:21002"
+        - name: CORS_ORIGIN
+          value: "http://localhost:20001"
 ---
 apiVersion: v1
 kind: Service

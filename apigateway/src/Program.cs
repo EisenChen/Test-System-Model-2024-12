@@ -17,7 +17,8 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(builder =>
     {
         // builder.WithOrigins(CORS_ORIGIN).WithMethods("POST","GET","OPTIONS").AllowAnyHeader();
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        // builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        builder.WithOrigins(CORS_ORIGIN).AllowAnyMethod().AllowAnyHeader();
     });
 });
 builder.Services.AddReverseProxy().LoadFromMemory(proxyConfigProvider.GetRoutes(), proxyConfigProvider.GetClusters());

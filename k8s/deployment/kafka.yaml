@@ -152,6 +152,7 @@ spec:
   ports:
     - protocol: TCP
       port: 21002
+      targetPort: 21002
   type: LoadBalancer
 ---
 # ====================

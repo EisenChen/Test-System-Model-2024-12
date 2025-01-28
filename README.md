@@ -58,7 +58,7 @@ docker run --rm -it --network=host alpine ash -c "apk add socat && socat TCP-LIS
 ```
 4. Build Image & Push To Minikube Registry
 ```
-./docker/push-images-ps1
+./docker/push-images.ps1
 ```
 5. Start App
 ```
